@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer Payment Service</title>
+    <script src="https://www.paypal.com/sdk/js?client-id=AUzFvMdlDWDsiRou7a1q-fmd07QqSSAroBVs1ygwySD-1Ba2qTA5fjDcdYEtpwLKvmrpbexZJMLUYjKg&currency=USD"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #0070ba;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Complete Your Payment</h2>
+        <p>Amount: <span id="amount-display"></span> USD</p>
+        <div id="paypal-button-container"></div>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        // Retrieve the amount from the URL's query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const amount = urlParams.get('amount');
+
+        // Display the amount on the page
+        document.getElementById('amount-display').textContent = amount || '0.00';
+
+        // PayPal Button Integration
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                if (!amount || isNaN(amount) || Number(amount) <= 0) {
+                    document.getElementById('status').textContent = "Invalid amount specified.";
+                    return false;
+                }
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: amount
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    document.getElementById('status').textContent = "Transaction completed! Thank you, " + details.payer.name.given_name;
+                });
+            },
+            onCancel: function() {
+                document.getElementById('status').textContent = "Transaction was canceled!";
+            },
+            onError: function(err) {
+                console.error(err);
+                document.getElementById('status').textContent = "An error occurred during the transaction!";
+            }
+        }).render('#paypal-button-container');
+    </script>
+</body>
+</html>
