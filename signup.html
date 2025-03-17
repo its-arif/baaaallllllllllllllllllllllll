@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freelancer Sign Up</title>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -44,65 +41,116 @@
         button:hover {
             background-color: #005f99;
         }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Sign Up</h2>
+        <div class="error" id="error-message"></div>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="signUp()">Sign Up</button>
+        <button id="signUpButton">Sign Up</button>
         <hr>
-        <button onclick="googleSignUp()">Sign Up with Google</button>
+        <button id="googleSignUpButton">Sign Up with Google</button>
     </div>
 
-    <script>
-        // Firebase configuration
+    <script type="module">
+        // Import the functions you need from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithPopup, 
+            GoogleAuthProvider 
+        } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc 
+        } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBblBGyQKA69moy_1sLzjGHQbIY0-uF2Fk",
             authDomain: "frepayapl.firebaseapp.com",
             projectId: "frepayapl",
-            storageBucket: "frepayapl.appspot.com",
+            storageBucket: "frepayapl.firebasestorage.app",
             messagingSenderId: "34930699194",
-            appId: "1:34930699194:web:3cefd0bf23ecebbfde4b83"
+            appId: "1:34930699194:web:3cefd0bf23ecebbfde4b83",
+            measurementId: "G-WL47EVF1P2"
         };
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
 
-        // Email Sign-Up
-        async function signUp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); // Initialize Authentication
+        const db = getFirestore(app); // Initialize Firestore
+
+        // Function to handle email/password sign-up
+        async function signUp(email, password) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = ""; // Clear any previous errors
+
+            if (!email || !password) {
+                errorMessage.textContent = "Please enter both email and password.";
+                return;
+            }
+
             try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                alert('Sign Up Successful!');
-                // Add to Firestore
-                await db.collection('freelancers').doc(userCredential.user.uid).set({
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                console.log("User signed up:", userCredential.user);
+
+                // Add the user to Firestore
+                await setDoc(doc(db, "freelancers", userCredential.user.uid), {
                     email: email,
                     linksCreated: 0,
                     paymentsReceived: 0
                 });
+
+                alert("Sign Up Successful!");
             } catch (error) {
-                alert(error.message);
+                errorMessage.textContent = error.message; // Show error to the user
+                console.error("Error during sign-up:", error);
             }
         }
 
-        // Google Sign-Up
+        // Function to handle Google sign-up
         async function googleSignUp() {
-            const provider = new firebase.auth.GoogleAuthProvider();
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = ""; // Clear any previous errors
+
+            const provider = new GoogleAuthProvider();
+
             try {
-                const result = await auth.signInWithPopup(provider);
-                alert('Google Sign Up Successful!');
-                await db.collection('freelancers').doc(result.user.uid).set({
+                const result = await signInWithPopup(auth, provider);
+                console.log("Google sign-up successful:", result.user);
+
+                // Add or update the user in Firestore
+                await setDoc(doc(db, "freelancers", result.user.uid), {
                     email: result.user.email,
                     linksCreated: 0,
                     paymentsReceived: 0
-                }, { merge: true });
+                }, { merge: true }); // Merge to avoid overwriting existing data
+
+                alert("Google Sign Up Successful!");
             } catch (error) {
-                alert(error.message);
+                errorMessage.textContent = error.message; // Show error to the user
+                console.error("Error during Google sign-up:", error);
             }
         }
+
+        // Attach event listeners to buttons
+        document.getElementById('signUpButton').addEventListener('click', () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            signUp(email, password);
+        });
+
+        document.getElementById('googleSignUpButton').addEventListener('click', googleSignUp);
     </script>
 </body>
 </html>
