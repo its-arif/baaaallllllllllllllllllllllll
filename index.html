@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Payment Link</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        input, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #0070ba;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Create a Payment Link</h2>
+        <input type="text" id="amount" placeholder="Enter Amount (USD)">
+        <button onclick="generatePaymentLink()">Generate Link</button>
+        <p id="link"></p>
+    </div>
+
+    <script>
+        function generatePaymentLink() {
+            const amount = document.getElementById('amount').value;
+            if (!amount || isNaN(amount) || Number(amount) <= 0) {
+                alert('Please enter a valid amount!');
+                return;
+            }
+            // Generate link pointing to payment.html
+            const paymentLink = `payment.html?amount=${encodeURIComponent(amount)}`;
+            document.getElementById('link').innerHTML = `Payment Link: <a href="${paymentLink}" target="_blank">${paymentLink}</a>`;
+        }
+    </script>
+</body>
+</html>
