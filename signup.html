@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer Sign Up</title>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #0070ba;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005f99;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="signUp()">Sign Up</button>
+        <hr>
+        <button onclick="googleSignUp()">Sign Up with Google</button>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBblBGyQKA69moy_1sLzjGHQbIY0-uF2Fk",
+            authDomain: "frepayapl.firebaseapp.com",
+            projectId: "frepayapl",
+            storageBucket: "frepayapl.appspot.com",
+            messagingSenderId: "34930699194",
+            appId: "1:34930699194:web:3cefd0bf23ecebbfde4b83"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Email Sign-Up
+        async function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                alert('Sign Up Successful!');
+                // Add to Firestore
+                await db.collection('freelancers').doc(userCredential.user.uid).set({
+                    email: email,
+                    linksCreated: 0,
+                    paymentsReceived: 0
+                });
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Google Sign-Up
+        async function googleSignUp() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                alert('Google Sign Up Successful!');
+                await db.collection('freelancers').doc(result.user.uid).set({
+                    email: result.user.email,
+                    linksCreated: 0,
+                    paymentsReceived: 0
+                }, { merge: true });
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
