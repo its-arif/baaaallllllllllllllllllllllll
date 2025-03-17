@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freelancer Sign In</title>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,40 +41,98 @@
         button:hover {
             background-color: #005f99;
         }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Sign In</h2>
+        <div class="error" id="error-message"></div>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="signIn()">Sign In</button>
+        <button id="signInButton">Sign In</button>
+        <hr>
+        <button id="googleSignInButton">Sign In with Google</button>
     </div>
 
-    <script>
-        // Firebase configuration
+    <script type="module">
+        // Import the functions you need from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            signInWithPopup, 
+            GoogleAuthProvider 
+        } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBblBGyQKA69moy_1sLzjGHQbIY0-uF2Fk",
             authDomain: "frepayapl.firebaseapp.com",
             projectId: "frepayapl",
-            storageBucket: "frepayapl.appspot.com",
+            storageBucket: "frepayapl.firebasestorage.app",
             messagingSenderId: "34930699194",
-            appId: "1:34930699194:web:3cefd0bf23ecebbfde4b83"
+            appId: "1:34930699194:web:3cefd0bf23ecebbfde4b83",
+            measurementId: "G-WL47EVF1P2"
         };
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
 
-        async function signIn() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); // Initialize Authentication
+
+        // Function to handle email/password sign-in
+        async function signIn(email, password) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = ""; // Clear any previous errors
+
+            if (!email || !password) {
+                errorMessage.textContent = "Please enter both email and password.";
+                return;
+            }
+
             try {
-                await auth.signInWithEmailAndPassword(email, password);
-                alert('Sign In Successful!');
-                window.location.href = 'dashboard.html'; // Redirect to admin dashboard or relevant page
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("User signed in:", userCredential.user);
+                alert("Sign In Successful!");
+                // Redirect to another page after successful sign-in
+                window.location.href = "/dashboard.html"; // Change this to your desired redirect URL
             } catch (error) {
-                alert(error.message);
+                errorMessage.textContent = error.message; // Show error to the user
+                console.error("Error during sign-in:", error);
             }
         }
+
+        // Function to handle Google sign-in
+        async function googleSignIn() {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = ""; // Clear any previous errors
+
+            const provider = new GoogleAuthProvider();
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                console.log("Google sign-in successful:", result.user);
+                alert("Google Sign In Successful!");
+                // Redirect to another page after successful sign-in
+                window.location.href = "/dashboard.html"; // Change this to your desired redirect URL
+            } catch (error) {
+                errorMessage.textContent = error.message; // Show error to the user
+                console.error("Error during Google sign-in:", error);
+            }
+        }
+
+        // Attach event listeners to buttons
+        document.getElementById('signInButton').addEventListener('click', () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            signIn(email, password);
+        });
+
+        document.getElementById('googleSignInButton').addEventListener('click', googleSignIn);
     </script>
 </body>
 </html>
