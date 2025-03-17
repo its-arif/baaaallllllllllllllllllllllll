@@ -53,7 +53,7 @@
         </table>
     </div>
 
-    <script>
+       <script>
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBblBGyQKA69moy_1sLzjGHQbIY0-uF2Fk",
@@ -63,4 +63,45 @@
             messagingSenderId: "34930699194",
             appId: "1:34930699194:web:3cefd0bf23ecebbfde4b83"
         };
-        const app =
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Function to load freelancers and their activities
+        async function loadFreelancers() {
+            const tableBody = document.getElementById('freelancerTable');
+            tableBody.innerHTML = ''; // Clear the table content before populating
+
+            try {
+                const snapshot = await db.collection('freelancers').get();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const row = document.createElement('tr');
+
+                    // Create table cells
+                    const emailCell = document.createElement('td');
+                    emailCell.textContent = data.email;
+
+                    const linksCreatedCell = document.createElement('td');
+                    linksCreatedCell.textContent = data.linksCreated || 0;
+
+                    const paymentsReceivedCell = document.createElement('td');
+                    paymentsReceivedCell.textContent = data.paymentsReceived || 0;
+
+                    // Append cells to the row
+                    row.appendChild(emailCell);
+                    row.appendChild(linksCreatedCell);
+                    row.appendChild(paymentsReceivedCell);
+
+                    // Append the row to the table body
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading freelancer data:', error);
+            }
+        }
+
+        // Load freelancer data on page load
+        window.onload = loadFreelancers;
+    </script>
+</body>
+</html>
